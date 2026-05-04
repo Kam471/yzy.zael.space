@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZAEL'S LOG / CATALOG</title>
+<link rel="stylesheet" href="catalog.css">
+</head>
+<body>
+
+<!-- ============== LOCK ============== -->
+<div id="lock-screen" class="lock">
+  <div class="lock-card">
+    <div class="lock-head">
+      <span class="l">Zael's Log / Auth</span>
+      <span class="r" id="lock-time">—</span>
+    </div>
+    <div class="lock-body">
+      <div>
+        <div class="lock-title">Restricted<br>Access</div>
+        <div class="lock-sub" style="margin-top:14px;">Enter password to view inventory archive.<br>Session: 30 days</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <input id="pw-input" type="password" placeholder="Password" class="lock-input" onkeydown="if(event.key==='Enter')checkPw()">
+        <div id="pw-error" class="lock-error">// Incorrect password</div>
+      </div>
+      <button onclick="checkPw()" class="lock-btn">Unlock →</button>
+      <div class="lock-credits">A project by Zael</div>
+    </div>
+  </div>
+</div>
+
+<script src="catalog-lock.js"></script>
+
+<!-- ============== APP ============== -->
+<div class="app">
+
+  <header class="header">
+    <div class="brand">
+      <div class="brand-mark">Z</div>
+      <span class="brand-text">Zael's Log</span>
+    </div>
+
+    <!-- Hover-open menus replacing sidebar -->
+    <nav class="nav-menus">
+      <div class="menu" data-menu="source">
+        <button class="menu-trigger" type="button">
+          <span id="menu-source-label">YZY Store</span>
+          <span class="badge mono tnum" id="menu-source-count">—</span>
+          <span class="caret">▼</span>
+        </button>
+        <div class="menu-panel">
+          <div class="label">Catalog Source</div>
+          <button class="row active" data-src="swell" type="button">
+            01 — YZY Store <span class="count" id="cnt-source-swell">—</span>
+          </button>
+          <button class="row" data-src="bully" type="button">
+            02 — Bully <span class="count" id="cnt-source-bully">—</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="menu" data-menu="filter">
+        <button class="menu-trigger" type="button">
+          Filter
+          <span class="badge mono" id="menu-filter-label">All</span>
+          <span class="caret">▼</span>
+        </button>
+        <div class="menu-panel" id="menu-filter-panel">
+          <div class="label" id="menu-filter-cat-label">Stock</div>
+          <div id="menu-filter-rows-stock">
+            <button class="row active" data-filter="all" type="button">All Items <span class="count" id="cnt-all">—</span></button>
+            <button class="row" data-filter="in" type="button"><span style="display:inline-flex;align-items:center;gap:8px;"><span class="d" style="width:6px;height:6px;border-radius:50%;background:var(--dot-in);"></span>In Stock</span> <span class="count" id="cnt-in">—</span></button>
+            <button class="row" data-filter="low" type="button"><span style="display:inline-flex;align-items:center;gap:8px;"><span class="d" style="width:6px;height:6px;border-radius:50%;background:var(--dot-low);"></span>Low Stock</span> <span class="count" id="cnt-low">—</span></button>
+          </div>
+          <div id="menu-filter-rows-bully" style="display:none;">
+            <div class="label">Category</div>
+            <button class="row active" data-cat="all" type="button">All <span class="count" id="bcat-all">—</span></button>
+            <button class="row" data-cat="apparel" type="button">Apparel <span class="count" id="bcat-apparel">—</span></button>
+            <button class="row" data-cat="music" type="button">Music <span class="count" id="bcat-music">—</span></button>
+            <button class="row" data-cat="bundles" type="button">Bundles <span class="count" id="bcat-bundles">—</span></button>
+            <div class="label">Availability</div>
+            <button class="row active" data-avail="all" type="button">All <span class="count" id="bavail-all">—</span></button>
+            <button class="row" data-avail="in" type="button"><span style="display:inline-flex;align-items:center;gap:8px;"><span class="d" style="width:6px;height:6px;border-radius:50%;background:var(--dot-in);"></span>Available</span> <span class="count" id="bavail-in">—</span></button>
+            <button class="row" data-avail="out" type="button"><span style="display:inline-flex;align-items:center;gap:8px;"><span class="d" style="width:6px;height:6px;border-radius:50%;background:var(--dot-out);"></span>Unavailable</span> <span class="count" id="bavail-out">—</span></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="menu" data-menu="stats">
+        <button class="menu-trigger" type="button">
+          <span class="dot"></span>
+          Stats
+          <span class="caret">▼</span>
+        </button>
+        <div class="menu-panel">
+          <div class="label">Inventory Snapshot</div>
+          <div class="stat-row">
+            <div class="stat-cell">
+              <div class="stat-val tnum" id="stat-total">—</div>
+              <div class="stat-lbl">Total</div>
+            </div>
+            <div class="stat-cell">
+              <div class="stat-val tnum" id="stat-in" style="color:var(--dot-in)">—</div>
+              <div class="stat-lbl">Available</div>
+            </div>
+          </div>
+          <div class="info">
+            <span class="faint">Source:</span> <span id="info-src">yzy-prod.swell.store</span><br>
+            <span class="faint">Endpoint:</span> /api/products<br>
+            <span class="faint">Auto-sync:</span> 5 min
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <div class="header-right">
+      <div class="meta-pill">
+        <span class="lbl">SYS</span>
+        <span class="val"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--dot-in);margin-right:6px;animation:pulse 2.4s ease-in-out infinite;"></span><span id="last-updated">Fetching</span></span>
+      </div>
+      <div class="meta-pill">
+        <span class="lbl">CT</span>
+        <span class="val tnum" id="header-count">—</span>
+      </div>
+      <button class="sync" id="sync-btn" onclick="fetchProducts()" title="Refresh"><span class="icon">↻</span> Sync</button>
+    </div>
+  </header>
+
+  <!-- Mobile menu bar -->
+  <div class="mobile-menu-bar">
+    <button id="mob-source" type="button" onclick="toggleMobileMenu('source')">⊟ Source</button>
+    <button id="mob-filter" type="button" onclick="toggleMobileMenu('filter')">⊟ Filter</button>
+    <button id="mob-stats" type="button" onclick="toggleMobileMenu('stats')"><span class="dot"></span>Stats</button>
+  </div>
+
+  <main class="main">
+    <div class="toolbar">
+      <div class="search-wrap">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input class="search-input" type="search" id="search" placeholder="Search" oninput="debouncedApplyFilters()" aria-label="Search">
+      </div>
+      <select class="sort-select" id="sort-sel" onchange="applyFilters()">
+        <option value="date-desc">Newest</option>
+        <option value="date-asc">Oldest</option>
+        <option value="price-asc">Price ↑</option>
+        <option value="price-desc">Price ↓</option>
+        <option value="name-asc">Name A–Z</option>
+        <option value="stock-desc">Stock ↓</option>
+      </select>
+      <div class="view-toggle">
+        <button class="view-btn active" id="btn-grid" onclick="setView('grid')" aria-label="Grid view">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        </button>
+        <button class="view-btn" id="btn-list" onclick="setView('list')" aria-label="List view">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="grid-container">
+      <div class="product-grid" id="product-grid">
+        <div class="skel-card"><div class="skeleton skel-img"></div><div class="skel-meta"><div class="skeleton skel-line" style="width:60%"></div><div class="skeleton skel-line" style="width:40%"></div></div></div>
+        <div class="skel-card"><div class="skeleton skel-img"></div><div class="skel-meta"><div class="skeleton skel-line" style="width:70%"></div><div class="skeleton skel-line" style="width:35%"></div></div></div>
+        <div class="skel-card"><div class="skeleton skel-img"></div><div class="skel-meta"><div class="skeleton skel-line" style="width:55%"></div><div class="skeleton skel-line" style="width:45%"></div></div></div>
+        <div class="skel-card"><div class="skeleton skel-img"></div><div class="skel-meta"><div class="skeleton skel-line" style="width:65%"></div><div class="skeleton skel-line" style="width:40%"></div></div></div>
+      </div>
+    </div>
+
+    <div class="footer-tape">
+      <span class="legend">
+        <span class="legend-item"><span class="d in"></span>In Stock</span>
+        <span class="legend-item"><span class="d low"></span>Low Stock</span>
+        <span class="legend-item"><span class="d out"></span>Out</span>
+      </span>
+      <span class="sep">/</span>
+      <span class="item" id="foot-source">YZY/STORE</span>
+      <span class="sep">/</span>
+      <span class="item" id="foot-count">—</span>
+      <span class="sep">/</span>
+      <span class="item" id="foot-time">—</span>
+      <div class="footer-credits">
+        <span>Made by</span>
+        <a href="https://zael.space" target="_blank" rel="noopener">Zael</a>
+        <span class="sep">·</span>
+        <span>v2.1</span>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ============== TWEAKS ============== -->
+<button class="tweaks-toggle" id="tweaks-toggle" onclick="toggleTweaks()">⚙ Tweaks</button>
+<div class="tweaks-panel" id="tweaks-panel">
+  <div class="tweaks-head">
+    <span>Tweaks</span>
+    <button onclick="closeTweaks()" type="button">×</button>
+  </div>
+  <div class="tweaks-body">
+    <div class="tweak-row">
+      <div class="tweak-lbl">Theme</div>
+      <div class="tweak-opts">
+        <button class="tweak-opt active" data-tweak="theme" data-val="paper" type="button">Paper</button>
+        <button class="tweak-opt" data-tweak="theme" data-val="black" type="button">Black</button>
+      </div>
+    </div>
+    <div class="tweak-row">
+      <div class="tweak-lbl">Density</div>
+      <div class="tweak-opts three">
+        <button class="tweak-opt" data-tweak="density" data-val="tight" type="button">Tight</button>
+        <button class="tweak-opt active" data-tweak="density" data-val="default" type="button">Default</button>
+        <button class="tweak-opt" data-tweak="density" data-val="roomy" type="button">Roomy</button>
+      </div>
+    </div>
+    <div class="tweak-row">
+      <div class="tweak-lbl">Type</div>
+      <div class="tweak-opts">
+        <button class="tweak-opt active" data-tweak="type" data-val="caps" type="button">All Caps</button>
+        <button class="tweak-opt" data-tweak="type" data-val="mix" type="button">Mixed</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="catalog-app.js"></script>
+</body>
+</html>

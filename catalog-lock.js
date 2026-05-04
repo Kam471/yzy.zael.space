@@ -1,0 +1,11 @@
+var _hs=['52ddc57513df18ccfcaf2e28de9aba5144b58679d39d092c0a48aeb593b96bc4','9e352ee014815912a2c9a73871e287ce86f2f6a262f4a4c6a5baa21aff55521b'];var _k='yzy_auth';var _t='ok_9f3a';
+function _sha256(s){var b=new TextEncoder().encode(s);return crypto.subtle.digest('SHA-256',b).then(function(h){return Array.from(new Uint8Array(h)).map(function(x){return x.toString(16).padStart(2,'0');}).join('');});}
+function setCookie(n,v,d){var e=new Date(Date.now()+d*864e5).toUTCString();document.cookie=n+'='+v+'; expires='+e+'; path=/; SameSite=Strict';}
+function getCookie(n){return document.cookie.split('; ').reduce(function(r,c){var p=c.split('=');return p[0]===n?p[1]:r;},null);}
+function _removeLock(){var el=document.getElementById('lock-screen');if(!el)return;el.style.transition='opacity 0.3s ease';el.style.opacity='0';setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);},300);}
+function checkPw(){var v=document.getElementById('pw-input').value;_sha256(v).then(function(h){if(_hs.indexOf(h)!==-1){setCookie(_k,_t,30);var a=document.querySelector('.app');if(a)a.style.display='';_removeLock();}else{var e=document.getElementById('pw-error');var i=document.getElementById('pw-input');if(e)e.style.display='block';if(i){i.value='';i.focus();setTimeout(function(){if(e)e.style.display='none';},2000);}}});}
+function tickClock(){var el=document.getElementById('lock-time');if(!el)return;var d=new Date();el.textContent=String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0')+' UTC';}
+tickClock();setInterval(tickClock,30000);
+document.addEventListener('DOMContentLoaded',function(){var a=document.querySelector('.app');if(getCookie(_k)===_t){var el=document.getElementById('lock-screen');if(el&&el.parentNode)el.parentNode.removeChild(el);if(a)a.style.display='';}else{if(a)a.style.display='none';var i=document.getElementById('pw-input');if(i)i.focus();}});
+var _obs=new MutationObserver(function(m){m.forEach(function(x){x.removedNodes.forEach(function(n){if(n.id==='lock-screen'&&getCookie(_k)!==_t){var a=document.querySelector('.app');if(a)a.style.display='none';location.reload();}});});});
+_obs.observe(document.body,{childList:true,subtree:false});
