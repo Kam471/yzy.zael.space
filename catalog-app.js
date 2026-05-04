@@ -131,6 +131,20 @@ function imgUrl(p){
 }
 function makeImg(s,a){if(!s)return FALLBACK_SVG;return '<img src="'+s+'" alt="'+(a||'')+'" width="240" height="240" loading="lazy" decoding="async" onerror="handleImgError(this)">';}
 
+function getDesigner(p){
+  const a = p && p.attributes ? p.attributes : null;
+  if (!a) return '';
+  if (a.designer && a.designer.value) return String(a.designer.value);
+  if (Array.isArray(a)){
+    const d = a.find(function(x){ return x && (x.name==='designer' || x.slug==='designer' || x.id==='designer'); });
+    if (d){
+      if (d.value) return String(d.value);
+      if (Array.isArray(d.values) && d.values.length) return String(d.values[0]);
+    }
+  }
+  return '';
+}
+
 // "Designed by" line — derived from attributes since API doesn't have a designer field
 function swellMeta(p){
   var parts = [];
@@ -155,7 +169,7 @@ function buildSwellCard(p, isList, idx){
   const imgHtml = makeImg(img, p.name);
   const meta = swellMeta(p);
   const date = fmtDate(p.date_created);
-  const designer = (p.attributes && p.attributes.designer && p.attributes.designer.value) || null;
+  const designer = getDesigner(p) || null;
   const dotClass = sl.label==='in'?'in':sl.label==='low'?'low':'out';
   const idxStr = pad(idx+1);
   const stockTxt = sl.label==='na' ? 'Out' : sl.label==='low' ? sl.val+' left' : sl.val+' in stock';
@@ -300,7 +314,13 @@ function applySwellFilters(){
   const filtered=allProducts.filter(function(p){
     const sl=stockLevel(p).label;
     const f=currentFilter==='all'||sl===currentFilter;
-    const s=!q||(p.name||'').toLowerCase().includes(q)||(p.slug||'').toLowerCase().includes(q);
+    const designer = getDesigner(p);
+    const meta = swellMeta(p);
+    const s=!q
+      ||(p.name||'').toLowerCase().includes(q)
+      ||(p.slug||'').toLowerCase().includes(q)
+      ||designer.toLowerCase().includes(q)
+      ||meta.toLowerCase().includes(q);
     return f && s;
   });
   filtered.sort(function(a,b){
@@ -421,6 +441,13 @@ function switchSource(src){
   document.getElementById('menu-filter-cat-label').textContent = src==='swell'?'Stock':'Filters';
 
   document.getElementById('search').value='';
+  currentFilter='all';
+  bullyCategory='all';
+  bullyAvail='all';
+  document.querySelectorAll('[data-filter]').forEach(function(b){b.classList.toggle('active', b.dataset.filter==='all');});
+  document.querySelectorAll('[data-cat]').forEach(function(b){b.classList.toggle('active', b.dataset.cat==='all');});
+  document.querySelectorAll('[data-avail]').forEach(function(b){b.classList.toggle('active', b.dataset.avail==='all');});
+  document.getElementById('menu-filter-label').textContent = 'All';
 
   if (src==='swell'){
     updateSwellMenuStats(allProducts);
