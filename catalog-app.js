@@ -131,20 +131,6 @@ function imgUrl(p){
 }
 function makeImg(s,a){if(!s)return FALLBACK_SVG;return '<img src="'+s+'" alt="'+(a||'')+'" width="240" height="240" loading="lazy" decoding="async" onerror="handleImgError(this)">';}
 
-function getDesigner(p){
-  const a = p && p.attributes ? p.attributes : null;
-  if (!a) return '';
-  if (a.designer && a.designer.value) return String(a.designer.value);
-  if (Array.isArray(a)){
-    const d = a.find(function(x){ return x && (x.name==='designer' || x.slug==='designer' || x.id==='designer'); });
-    if (d){
-      if (d.value) return String(d.value);
-      if (Array.isArray(d.values) && d.values.length) return String(d.values[0]);
-    }
-  }
-  return '';
-}
-
 // "Designed by" line — derived from attributes since API doesn't have a designer field
 function swellMeta(p){
   var parts = [];
@@ -169,7 +155,7 @@ function buildSwellCard(p, isList, idx){
   const imgHtml = makeImg(img, p.name);
   const meta = swellMeta(p);
   const date = fmtDate(p.date_created);
-  const designer = getDesigner(p) || null;
+  const designer = (p.attributes && p.attributes.designer && p.attributes.designer.value) || null;
   const dotClass = sl.label==='in'?'in':sl.label==='low'?'low':'out';
   const idxStr = pad(idx+1);
   const stockTxt = sl.label==='na' ? 'Out' : sl.label==='low' ? sl.val+' left' : sl.val+' in stock';
@@ -314,13 +300,7 @@ function applySwellFilters(){
   const filtered=allProducts.filter(function(p){
     const sl=stockLevel(p).label;
     const f=currentFilter==='all'||sl===currentFilter;
-    const designer = getDesigner(p);
-    const meta = swellMeta(p);
-    const s=!q
-      ||(p.name||'').toLowerCase().includes(q)
-      ||(p.slug||'').toLowerCase().includes(q)
-      ||designer.toLowerCase().includes(q)
-      ||meta.toLowerCase().includes(q);
+    const s=!q||(p.name||'').toLowerCase().includes(q)||(p.slug||'').toLowerCase().includes(q);
     return f && s;
   });
   filtered.sort(function(a,b){
@@ -441,13 +421,6 @@ function switchSource(src){
   document.getElementById('menu-filter-cat-label').textContent = src==='swell'?'Stock':'Filters';
 
   document.getElementById('search').value='';
-  currentFilter='all';
-  bullyCategory='all';
-  bullyAvail='all';
-  document.querySelectorAll('[data-filter]').forEach(function(b){b.classList.toggle('active', b.dataset.filter==='all');});
-  document.querySelectorAll('[data-cat]').forEach(function(b){b.classList.toggle('active', b.dataset.cat==='all');});
-  document.querySelectorAll('[data-avail]').forEach(function(b){b.classList.toggle('active', b.dataset.avail==='all');});
-  document.getElementById('menu-filter-label').textContent = 'All';
 
   if (src==='swell'){
     updateSwellMenuStats(allProducts);
@@ -464,7 +437,7 @@ function switchSource(src){
 async function fetchProducts(){
   const btn=document.getElementById('sync-btn');if(btn)btn.classList.add('spinning');
   try{
-    const r=await fetch(SWELL_URL+'\u0026_='+Date.now(),{cache:'no-store',headers:{'Authorization':SWELL_AUTH,'Content-Type':'application/json','Cache-Control':'no-cache'}});
+    const r=await fetch(SWELL_URL,{headers:{'Authorization':SWELL_AUTH,'Content-Type':'application/json'}});
     if (!r.ok) throw new Error('HTTP '+r.status);
     const d=await r.json();
     allProducts=d.results||[];
@@ -484,15 +457,9 @@ async function fetchProducts(){
 }
 
 async function fetchBullyProducts(){
-  const cachedRaw=sessionStorage.getItem('bully_cache_v2');
-  if (cachedRaw){
-    try{
-      const cached=JSON.parse(cachedRaw);
-      const fresh=Date.now()-Number(cached.fetchedAt||0) < 2*60*1000;
-      if (fresh && Array.isArray(cached.items)){
-        bullyProducts=cached.items;bullyLoaded=true;updateBullyMenuStats(bullyProducts);document.getElementById('last-updated').textContent='cache';applyFilters();return;
-      }
-    }catch(e){}
+  const cached=sessionStorage.getItem('bully_cache');
+  if (cached){
+    try{ bullyProducts=JSON.parse(cached);bullyLoaded=true;updateBullyMenuStats(bullyProducts);document.getElementById('last-updated').textContent='cache';applyFilters();return; }catch(e){}
   }
   const grid=document.getElementById('product-grid');
   grid.innerHTML='<div class="bully-progress">'
@@ -503,14 +470,14 @@ async function fetchBullyProducts(){
 
   const results=[];const CONCURRENCY=6;let completed=0;
   function up(){completed++;const p=Math.round((completed/BULLY_SLUGS.length)*100);const b=document.getElementById('bully-prog');const t=document.getElementById('bully-prog-text');if(b)b.style.width=p+'%';if(t)t.textContent=pad(completed)+' / '+pad(BULLY_SLUGS.length);}
-  async function fS(s){try{const r=await fetch(BULLY_BASE+s+'.js&_='+Date.now(),{cache:'no-store',headers:{'Cache-Control':'no-cache'}});if(!r.ok) throw new Error();const d=await r.json();d._slug=s;d._category=getBullyCategory(s);return d;}catch{return null;}finally{up();}}
+  async function fS(s){try{const r=await fetch(BULLY_BASE+s+'.js');if(!r.ok) throw new Error();const d=await r.json();d._slug=s;d._category=getBullyCategory(s);return d;}catch{return null;}finally{up();}}
   for (let i=0;i<BULLY_SLUGS.length;i+=CONCURRENCY){
     const b=BULLY_SLUGS.slice(i,i+CONCURRENCY);
     const r=await Promise.all(b.map(fS));
     r.forEach(function(x){if(x)results.push(x);});
   }
   bullyProducts=results;bullyLoaded=true;
-  sessionStorage.setItem('bully_cache_v2',JSON.stringify({ fetchedAt: Date.now(), items: bullyProducts }));
+  sessionStorage.setItem('bully_cache',JSON.stringify(bullyProducts));
   updateBullyMenuStats(bullyProducts);
   const t=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
   document.getElementById('last-updated').textContent=t;
